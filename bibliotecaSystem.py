@@ -65,7 +65,7 @@ def listar():
     pause()
 
 def buscar():
-    search = input("Digite o título do livro que deseja buscar: ").lower().strip()
+    search = input("Digite o título ou autor do livro que deseja buscar: ").lower().strip()
     encontrados = False
 
     for _, row in pd.read_csv('biblioteca.csv').iterrows():
@@ -74,7 +74,7 @@ def buscar():
             encontrados = True
 
     if not encontrados:
-        print("Nenhum livro encontrado com esse título.")
+        print("Nenhum livro encontrado com esse título ou autor.")
     pause()
 
 def atualizar():
@@ -91,6 +91,7 @@ def atualizar():
 
         if bookAtt not in df['codigo'].values:
             print('Codigo inválido! Tente novamente.')
+            pause()
             return
 
         option = int(input("Escolha alguma das opções para atualizar:\n" \
@@ -110,6 +111,7 @@ def atualizar():
             case 4:
                 option = 'status'
             case 5:
+                pause()
                 return
             case _:
                 print('Número inválido!')
