@@ -9,7 +9,6 @@ colunas = ['codigo', 'titulo', 'autor', 'ano_publicacao', 'status']
 #Vai basicamente esperar uma resposta do usuário para continuar o código
 def pause():
     import os
-    input("\nPressione ENTER para continuar...")
     os.system('cls')
 
 #Apenas o programador vai poder usar. Basicamente todo o banco de dados será resetado
@@ -21,6 +20,7 @@ def cadastrar():
     titulo = input("Digite o título do livro: ").strip().title()
     autor = input("Digite o autor do livro: ").strip().title()
     ano = input("Digite o ano de publicação: ").strip()
+
     status = 'naoValido'
 
     df = pd.read_csv('biblioteca.csv')
@@ -40,7 +40,6 @@ def cadastrar():
                 else:
                     print('Status inválido!')
                     print('Tente novamente.')
-                    status = 'naoValido'
 
 
             
@@ -56,13 +55,11 @@ def cadastrar():
             pd.concat([df, bookNew], ignore_index=True).to_csv('biblioteca.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
 
             print("Livro cadastrado com sucesso!")
-    pause()
     
 
 def listar():
     for _, row in pd.read_csv('biblioteca.csv').iterrows():
         print(f"{row['titulo']} - {row['autor']}, ({row['ano_publicacao']}) || Status: {row['status']}")
-    pause()
 
 def buscar():
     search = input("Digite o título ou autor do livro que deseja buscar: ").lower().strip()
@@ -75,7 +72,6 @@ def buscar():
 
     if not encontrados:
         print("Nenhum livro encontrado com esse título ou autor.")
-    pause()
 
 def atualizar():
     df = pd.read_csv('biblioteca.csv')
@@ -87,19 +83,18 @@ def atualizar():
             if bookAtt in row['titulo'].lower():
                 print(f'({row['codigo']}) - {row['titulo']}')
 
-        bookAtt = int(input('Digite o ID do livro que deseja atualizar: '))
+        try:
+            bookAtt = int(input('Digite o ID do livro que deseja atualizar: '))
+        except:
+            print("Valor inválido!")
+            return
+
 
         if bookAtt not in df['codigo'].values:
             print('Codigo inválido! Tente novamente.')
-            pause()
             return
 
-        option = int(input("Escolha alguma das opções para atualizar:\n" \
-                        "1. Titulo" \
-                        "\n2. Autor" \
-                        "\n3. Ano de Publicação" \
-                        "\n4. Status" \
-                        "\n5. Sair\n"))
+        option = int(input('O que deseja atualizar?\n1. Titulo\n2. Autor\n3. Ano\n4. Alterar o Status\n5. Sair\n'))
 
         match option:
             case 1:
@@ -111,7 +106,6 @@ def atualizar():
             case 4:
                 option = 'status'
             case 5:
-                pause()
                 return
             case _:
                 print('Número inválido!')
@@ -134,7 +128,6 @@ def atualizar():
         df.to_csv('biblioteca.csv', index=False)
     else:
         print("Livro não encontrado!")
-    pause()
         
 
 def remover():
@@ -160,7 +153,7 @@ def remover():
                 print('Ok, o livro não foi deletado!')
     else:
         print("Livro não encontrado!")
-    pause()
+
 
 def ordenar(collumInfo):
     df = pd.read_csv("biblioteca.csv")
@@ -170,7 +163,7 @@ def ordenar(collumInfo):
     return dfOrdenado
 
 def gerarRelatorio():
-    option = int(input('Escolha uma das opções:\n1. Organizar por Título\n2. Organizar por Autor\n3. Organizar por data de publicação\n4. Apenas os livros Disponíveis\n5. Sair'))
+    option = int(input('Escolha uma das opções:\n1. Organizar por Título\n2. Organizar por Autor\n3. Organizar por data de publicação\n4. Organizar por status\n5. Sair\n'))
 
     match option:
         case 1:
@@ -189,14 +182,24 @@ def gerarRelatorio():
     relatorio = ordenar(option)
 
     if option == 'status':
-        relatorio = relatorio[relatorio['status'] == 'Disponível']
+        opt = int(input("Escolha entre livros disponíveis e livros emprestados (1 - 2) "))
+        if opt == 1:
+            relatorio = relatorio[relatorio['status'] == 'Disponível']
+
+        elif opt == 2:
+            relatorio = relatorio[relatorio['status'] == 'Emprestado']
+        else:
+            print("Valor inválido!")
+
+        for _, row in relatorio.iterrows():
+            print(f"{row['titulo']} - {row['autor']}, ({row['ano_publicacao']}) || Status: {row['status']}")
     else:
         for _, row in relatorio.iterrows():
             print(f"{row['titulo']} - {row['autor']}, ({row['ano_publicacao']}) || Status: {row['status']}")
-    pause()
 
 def menu():
     while True:
+        pause()
         print(f'{'='*10}Sistema da Biblioteca{'='*10}')
         print("\nMenu de Opções:")
         print("1. Cadastrar Livro")
@@ -207,21 +210,38 @@ def menu():
         print("6. Gerar Relátorio")
         print("7. Sair")
 
-        escolha = int(input("Escolha uma opção (1-7): "))
+        try:
+            escolha = int(input("Escolha uma opção (1-7): "))
+        except:
+            pause()
+            print("Valor inválido!")
+            continue
 
         match escolha:
             case 1:
+                pause()
                 cadastrar()
+                input('Aperte ENTER para continuar...')
             case 2:
+                pause()
                 listar()
+                input('Aperte ENTER para continuar...')
             case 3:
+                pause()
                 buscar()
+                input('Aperte ENTER para continuar...')
             case 4:
+                pause()
                 atualizar()
+                input('Aperte ENTER para continuar...')
             case 5:
+                pause()
                 remover()
+                input('Aperte ENTER para continuar...')
             case 6:
+                pause()
                 gerarRelatorio()
+                input('Aperte ENTER para continuar...')
             case 7:
                 print("Saindo do programa...")
                 break
