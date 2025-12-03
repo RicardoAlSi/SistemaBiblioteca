@@ -155,30 +155,36 @@ def atualizar():
 def remover():
     df = pd.read_csv('biblioteca.csv')
 
+    if df.empty:
+        print("Livro não encontrado!")
+        return
+
     bookDelet = validarTextoValorPosi("Qual livro deseja deletar do catalogo? ")
 
     if df['titulo'].str.contains(bookDelet).any():
         for _, row in df.iterrows():
-            if bookDelet in row['titulo'].lower():
+            if bookDelet in row['titulo']:
                 print(f"({row['codigo']}) - {row['titulo']}")
 
         bookDelet = validarNumero("Digite o ID do livro correspodente: ")
 
-        confirm = validarTextoValorPosi(f"Você tem certeza que deseja deletar '{df.loc[df['codigo']==bookDelet, 'titulo'].values[0]}'? (1 - Sim | 2 - Não)\n")
-
         if bookDelet not in df['codigo'].values:
             print("Livro não encontrado!")
-        else:
-            if confirm == 1:
-                df = df[df['codigo'] != bookDelet]
-                df.reset_index(drop=True, inplace=True)
-                df.to_csv("biblioteca.csv", index=False)                
-                print("Livro Deletado com sucesso")
-            elif confirm == 2:
-                print('Ok, o livro não foi deletado!')
+            return
+
+        titulo = df.loc[df['codigo'] == bookDelet, 'titulo'].values[0]
+
+        confirm = validarNumero(f"Você tem certeza que deseja deletar '{titulo}'? (1 - Sim | 2 - Não)\n")
+
+        if confirm == 1:
+            df = df[df['codigo'] != bookDelet]
+            df.reset_index(drop=True, inplace=True)
+            df.to_csv("biblioteca.csv", index=False)                
+            print("Livro Deletado com sucesso")
+        elif confirm == 2:
+            print('Ok, o livro não foi deletado!')
     else:
         print("Livro não encontrado!")
-
 
 def ordenar(collumInfo):
     df = pd.read_csv("biblioteca.csv")
