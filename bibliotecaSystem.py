@@ -215,6 +215,7 @@ def ordenar(collumInfo):
 
     dfOrdenado = df.sort_values(by=[collumInfo], ascending=[True])
 
+
     return dfOrdenado
 
 def gerarRelatorio():
@@ -244,6 +245,7 @@ def gerarRelatorio():
             relatorio = relatorio[relatorio['status'] == 'Emprestado']
         else:
             print("Valor inválido!")
+            return
 
         print(f"{'='*15}Livros Listados{'='*15}")
         for _, row in relatorio.iterrows():
