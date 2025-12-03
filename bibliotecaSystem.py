@@ -41,11 +41,24 @@ def validarTextoValorPosi(msg):
             except:
                 return texto.title()
 
+def validarAno(msg):
+    while True:
+        ano = input(msg).strip()
+        verif = int(input("O livro é antes de Era Comum? (1 - Depois de Cristo | 2 - Antes de Cristo): "))
+        if verif == 1:
+            return int(ano)
+        if verif == 2:
+            anoNeg = int(ano)*-1
+            return anoNeg
+        else:
+            print("Valor inválido!")
+        
+
 #Adiciona um novo item ao banco de dados
 def cadastrar():
     titulo = validarTextoValorPosi("Digite o título do livro: ")
     autor = validarTextoValorPosi("Digite o autor do livro: ")
-    ano = validarNumero("Digite o ano de publicação: ")
+    ano = validarAno("Digite o ano de publicação: ")
 
     status = 'naoValido'
     df = pd.read_csv('biblioteca.csv')
@@ -86,7 +99,10 @@ def cadastrar():
 
 def listar():
     for _, row in pd.read_csv('biblioteca.csv').iterrows():
-        print(f"{row['titulo']} - {row['autor']}, ({row['ano_publicacao']}) || Status: {row['status']}")
+        if int(row['ano_publicacao']) < 0:
+            print(f"{row['titulo']} - {row['autor']}, {abs(row['ano_publicacao'])} a. c. || Status: {row['status']}")
+        else: 
+            print(f"{row['titulo']} - {row['autor']}, {row['ano_publicacao']} || Status: {row['status']}")
 
 def buscar():
     search = validarTextoValorPosi("Digite o título ou autor do livro que deseja buscar: ")
@@ -94,7 +110,10 @@ def buscar():
 
     for _, row in pd.read_csv('biblioteca.csv').iterrows():
         if search in row['titulo'] or search in row['autor']:
-            print(f"{row['titulo']} - {row['autor']}, ({row['ano_publicacao']}) || Status: {row['status']}")
+            if int(row['ano_publicacao']) < 0:
+                print(f"{row['titulo']} - {row['autor']}, {abs(row['ano_publicacao'])} a. c. || Status: {row['status']}")
+            else: 
+                print(f"{row['titulo']} - {row['autor']}, {row['ano_publicacao']} || Status: {row['status']}")
             encontrados = True
 
     if not encontrados:
@@ -142,6 +161,11 @@ def atualizar():
             else:
                 df.loc[df['codigo']==bookAtt, option]='Emprestado'
                 print('O livro foi pego com sucesso!')
+        elif option == 'ano_publicacao':
+            newInfo = validarAno("Digite o ano correto: ")
+
+            df.loc[df['codigo']==bookAtt, option] = newInfo
+
         else:
             newInfo = validarTextoValorPosi("Digite a nova informação: ")
     
@@ -211,7 +235,6 @@ def gerarRelatorio():
             print('Número inválido!')
     
     relatorio = ordenar(option)
-
     if option == 'status':
         opt = validarNumero("Digite uma das opções para filtrar o relatório:\n1. Disponível\n0. Emprestado\n")
         if opt == 1:
@@ -222,11 +245,19 @@ def gerarRelatorio():
         else:
             print("Valor inválido!")
 
+        print(f"{'='*15}Livros Listados{'='*15}")
         for _, row in relatorio.iterrows():
-            print(f"{row['titulo']} - {row['autor']}, ({row['ano_publicacao']}) || Status: {row['status']}")
+            if int(row['ano_publicacao']) < 0:
+                print(f"{row['titulo']} - {row['autor']}, {abs(row['ano_publicacao'])} a. c. || Status: {row['status']}")
+            else: 
+                print(f"{row['titulo']} - {row['autor']}, {row['ano_publicacao']} || Status: {row['status']}")
     else:
+        print(f"{'='*15}Livros Listados{'='*15}")
         for _, row in relatorio.iterrows():
-            print(f"{row['titulo']} - {row['autor']}, ({row['ano_publicacao']}) || Status: {row['status']}")
+            if int(row['ano_publicacao']) < 0:
+                print(f"{row['titulo']} - {row['autor']}, {abs(row['ano_publicacao'])} a. c. || Status: {row['status']}")
+            else: 
+                print(f"{row['titulo']} - {row['autor']}, {row['ano_publicacao']} || Status: {row['status']}")
 
 def menu():
     while True:
@@ -250,32 +281,32 @@ def menu():
             case 1:
                 limpaTela()
                 cadastrar()
-                input('Aperte ENTER para continuar...')
+                input('\nAperte ENTER para continuar...')
             case 2:
                 limpaTela()
                 listar()
-                input('Aperte ENTER para continuar...')
+                input('\nAperte ENTER para continuar...')
             case 3:
                 limpaTela()
                 buscar()
-                input('Aperte ENTER para continuar...')
+                input('\nAperte ENTER para continuar...')
             case 4:
                 limpaTela()
                 atualizar()
-                input('Aperte ENTER para continuar...')
+                input('\nAperte ENTER para continuar...')
             case 5:
                 limpaTela()
                 remover()
-                input('Aperte ENTER para continuar...')
+                input('\nAperte ENTER para continuar...')
             case 6:
                 limpaTela()
                 gerarRelatorio()
-                input('Aperte ENTER para continuar...')
+                input('\nAperte ENTER para continuar...')
             case 7:
-                print("Saindo do programa...")
+                print("\nSaindo do programa...")
                 break
             case _:
-                print("Opção inválida. Tente novamente.")
+                print("\nOpção inválida. Tente novamente.")
 
 def main():
     dfBiblioteca = Path('./biblioteca.csv')
