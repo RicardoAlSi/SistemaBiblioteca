@@ -7,7 +7,7 @@ dados = []
 colunas = ['codigo', 'titulo', 'autor', 'ano_publicacao', 'status']
 
 #Vai basicamente esperar uma resposta do usuário para continuar o código
-def pause():
+def limpaTela():
     import os
     os.system('cls')
 
@@ -15,46 +15,73 @@ def pause():
 def reset():
     pd.DataFrame(dados, columns=colunas).to_csv('biblioteca.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
 
+def validarNumero(msg):
+    while True:
+        valor = input(msg).strip()
+        if not valor.isdigit():
+            print("Valor inválido! Tente novamente. (Apenas números são permitidos)")
+        elif int(valor) < 0:
+            print("Valor inválido!")
+        else:
+            return int(valor)
+
+def validarTextoValorPosi(msg):
+    while True:
+        texto = input(msg).strip()
+        if texto == "":
+            print("Não é permitido valores vázios! Tente novamente.")
+        else:
+            try:
+                num = float(texto)
+                if num < 0:
+                    print("Valor inválido!")
+                    continue  
+                if num >= 0:
+                    return texto.title()
+            except:
+                return texto.title()
+
 #Adiciona um novo item ao banco de dados
 def cadastrar():
-    titulo = input("Digite o título do livro: ").strip().title()
-    autor = input("Digite o autor do livro: ").strip().title()
-    ano = input("Digite o ano de publicação: ").strip()
+    titulo = validarTextoValorPosi("Digite o título do livro: ")
+    autor = validarTextoValorPosi("Digite o autor do livro: ")
+    ano = validarNumero("Digite o ano de publicação: ")
 
     status = 'naoValido'
-
     df = pd.read_csv('biblioteca.csv')
 
-    if titulo == '' or autor == '' or ano=='':
+    if titulo == '' or autor == '' or ano == '':
         print("Não é permitido valores vázios! Tente novamente.")
-    else:
-        if titulo in df['titulo'].values:
-            print("O livro já está cadastrado no sistema!")
-        else:
-            while status == 'naoValido':
-                status = int(input("Digite o status do livro (1 - Disponível || 0 - Emprestado): "))
-                if status == 1:
-                    status = 'Disponível'
-                elif status == 0:
-                    status = 'Emprestado'
-                else:
-                    print('Status inválido!')
-                    print('Tente novamente.')
+        return
 
+    if titulo in df['titulo'].values:
+        print("O livro já está cadastrado no sistema!")
+        return
 
-            
-
-            #Sempre vai adiconar o próximo código com base no maior código existente
-            if df.empty:
-                codigo = 1
+    while status == 'naoValido':
+        try:
+            status = validarNumero("Digite o status do livro (1 - Disponível || 0 - Emprestado): ")
+            if status == 1:
+                status = 'Disponível'
+            elif status == 0:
+                status = 'Emprestado'
             else:
-                codigo = df['codigo'].max() + 1
+                print('Status inválido!')
+                status = 'naoValido'
+        except:
+            print('Status inválido!')
+            status = 'naoValido'
 
-            bookNew = pd.DataFrame([[codigo, titulo, autor, ano, status]], columns=colunas)
+    if df.empty:
+        codigo = 1
+    else:
+        codigo = df['codigo'].max() + 1
 
-            pd.concat([df, bookNew], ignore_index=True).to_csv('biblioteca.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
+    bookNew = pd.DataFrame([[codigo, titulo, autor, ano, status]], columns=colunas)
 
-            print("Livro cadastrado com sucesso!")
+    pd.concat([df, bookNew], ignore_index=True).to_csv('biblioteca.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
+
+    print("Livro cadastrado com sucesso!")
     
 
 def listar():
@@ -62,11 +89,11 @@ def listar():
         print(f"{row['titulo']} - {row['autor']}, ({row['ano_publicacao']}) || Status: {row['status']}")
 
 def buscar():
-    search = input("Digite o título ou autor do livro que deseja buscar: ").lower().strip()
+    search = validarTextoValorPosi("Digite o título ou autor do livro que deseja buscar: ")
     encontrados = False
 
     for _, row in pd.read_csv('biblioteca.csv').iterrows():
-        if search in row['titulo'].lower() or search in row['autor'].lower():
+        if search in row['titulo'] or search in row['autor']:
             print(f"{row['titulo']} - {row['autor']}, ({row['ano_publicacao']}) || Status: {row['status']}")
             encontrados = True
 
@@ -76,25 +103,20 @@ def buscar():
 def atualizar():
     df = pd.read_csv('biblioteca.csv')
 
-    bookAtt = input("Qual livro deseja atualizar? ").lower().strip()
+    bookAtt = validarTextoValorPosi("Qual livro deseja atualizar? ")
 
-    if df['titulo'].str.lower().str.contains(bookAtt).any():
+    if df['titulo'].str.contains(bookAtt).any():
         for _, row in df.iterrows():
-            if bookAtt in row['titulo'].lower():
+            if bookAtt in row['titulo']:
                 print(f'({row['codigo']}) - {row['titulo']}')
 
-        try:
-            bookAtt = int(input('Digite o ID do livro que deseja atualizar: '))
-        except:
-            print("Valor inválido!")
-            return
-
+        bookAtt = validarNumero('Digite o ID do livro que deseja atualizar: ')
 
         if bookAtt not in df['codigo'].values:
             print('Codigo inválido! Tente novamente.')
             return
 
-        option = int(input('O que deseja atualizar?\n1. Titulo\n2. Autor\n3. Ano\n4. Alterar o Status\n5. Sair\n'))
+        option = validarNumero('O que deseja atualizar?\n1. Titulo\n2. Autor\n3. Ano\n4. Alterar o Status\n5. Sair\n')
 
         match option:
             case 1:
@@ -121,7 +143,7 @@ def atualizar():
                 df.loc[df['codigo']==bookAtt, option]='Emprestado'
                 print('O livro foi pego com sucesso!')
         else:
-            newInfo = str(input(f"Digite a nova informação: ")).strip()
+            newInfo = validarTextoValorPosi("Digite a nova informação: ")
     
             df.loc[df['codigo']==bookAtt, option] = newInfo
 
@@ -133,23 +155,26 @@ def atualizar():
 def remover():
     df = pd.read_csv('biblioteca.csv')
 
-    bookDelet = input("Qual livro acabou?").lower().strip()
+    bookDelet = validarTextoValorPosi("Qual livro deseja deletar do catalogo? ")
 
-    if df['titulo'].str.lower().str.contains(bookDelet).any():
+    if df['titulo'].str.contains(bookDelet).any():
         for _, row in df.iterrows():
             if bookDelet in row['titulo'].lower():
                 print(f"({row['codigo']}) - {row['titulo']}")
-        bookDelet = int(input("Digite o ID do livro correspodente: "))
-        conf = int(input(f"Você tem certeza que deseja deletar '{df.loc[df['codigo']==bookDelet, 'titulo'].values[0]}'? (1 - Sim | 2 - Não)\n"))
+
+        bookDelet = validarNumero("Digite o ID do livro correspodente: ")
+
+        confirm = validarTextoValorPosi(f"Você tem certeza que deseja deletar '{df.loc[df['codigo']==bookDelet, 'titulo'].values[0]}'? (1 - Sim | 2 - Não)\n")
+
         if bookDelet not in df['codigo'].values:
             print("Livro não encontrado!")
         else:
-            if conf == 1:
+            if confirm == 1:
                 df = df[df['codigo'] != bookDelet]
                 df.reset_index(drop=True, inplace=True)
                 df.to_csv("biblioteca.csv", index=False)                
                 print("Livro Deletado com sucesso")
-            elif conf == 2:
+            elif confirm == 2:
                 print('Ok, o livro não foi deletado!')
     else:
         print("Livro não encontrado!")
@@ -163,7 +188,7 @@ def ordenar(collumInfo):
     return dfOrdenado
 
 def gerarRelatorio():
-    option = int(input('Escolha uma das opções:\n1. Organizar por Título\n2. Organizar por Autor\n3. Organizar por data de publicação\n4. Organizar por status\n5. Sair\n'))
+    option = validarNumero('Escolha uma das opções:\n1. Organizar por Título\n2. Organizar por Autor\n3. Organizar por data de publicação\n4. Organizar por status\n5. Sair\n')
 
     match option:
         case 1:
@@ -182,11 +207,11 @@ def gerarRelatorio():
     relatorio = ordenar(option)
 
     if option == 'status':
-        opt = int(input("Escolha entre livros disponíveis e livros emprestados (1 - 2) "))
+        opt = validarNumero("Digite uma das opções para filtrar o relatório:\n1. Disponível\n0. Emprestado\n")
         if opt == 1:
             relatorio = relatorio[relatorio['status'] == 'Disponível']
 
-        elif opt == 2:
+        elif opt == 0:
             relatorio = relatorio[relatorio['status'] == 'Emprestado']
         else:
             print("Valor inválido!")
@@ -199,7 +224,7 @@ def gerarRelatorio():
 
 def menu():
     while True:
-        pause()
+        limpaTela()
         print(f'{'='*10}Sistema da Biblioteca{'='*10}')
         print("\nMenu de Opções:")
         print("1. Cadastrar Livro")
@@ -213,33 +238,31 @@ def menu():
         try:
             escolha = int(input("Escolha uma opção (1-7): "))
         except:
-            pause()
-            print("Valor inválido!")
             continue
 
         match escolha:
             case 1:
-                pause()
+                limpaTela()
                 cadastrar()
                 input('Aperte ENTER para continuar...')
             case 2:
-                pause()
+                limpaTela()
                 listar()
                 input('Aperte ENTER para continuar...')
             case 3:
-                pause()
+                limpaTela()
                 buscar()
                 input('Aperte ENTER para continuar...')
             case 4:
-                pause()
+                limpaTela()
                 atualizar()
                 input('Aperte ENTER para continuar...')
             case 5:
-                pause()
+                limpaTela()
                 remover()
                 input('Aperte ENTER para continuar...')
             case 6:
-                pause()
+                limpaTela()
                 gerarRelatorio()
                 input('Aperte ENTER para continuar...')
             case 7:
